@@ -3,21 +3,28 @@ from Dispara_Email import DisparaEmail
 import pandas as pd
 
 db = DB()
+carregamentos = db.carregamentos()
 
+old_car = pd.read_csv('lista_carregamentos.csv')
 
-carregamentos = [436100]#db.carregamentos()
+print('***APROVEITAMENTO ESTOQUE***')
 
 df = ''
 temp_df_list = []
 for car in carregamentos:
-    #print(car)
-    df = db.EXPS(car)
-    for itens in df.iterrows():
-        temp_df = db.disponibilidade_estoque(itens[1]['COD_ITEM'])
-        temp_df_list.append(temp_df)
+    if car not in old_car['CARREGAMENTO'].tolist():
+        df = db.EXPS(car)
+        for itens in df.iterrows():
+            temp_df = db.disponibilidade_estoque(itens[1]['COD_ITEM'])
+            temp_df_list.append(temp_df)
 
-    temp_df_combined = pd.concat(temp_df_list, ignore_index=True)
-    result_df = pd.merge(df, temp_df_combined, on='COD_ITEM', how='inner')
-    disp = DisparaEmail(result_df, car)
-    disp.dispara_email()
-    #print(result_df.to_string())
+        temp_df_combined = pd.concat(temp_df_list, ignore_index=True)
+        result_df = pd.merge(df, temp_df_combined, on='COD_ITEM', how='inner')
+        if not result_df.empty:
+            disp = DisparaEmail(result_df, car)
+            disp.dispara_email()
+
+        if not df.empty:
+            with open('lista_carregamentos.csv', 'a') as car_lis:
+                car_lis.write('\n')
+                car_lis.write(str(car))

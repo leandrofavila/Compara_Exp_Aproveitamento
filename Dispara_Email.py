@@ -25,7 +25,7 @@ class DisparaEmail:
         message = self.trata_email()
         password = "srengld21v3l1"
         msg['From'] = "ldeavila@sr.ind.br"
-        recipients = ["ldeavila@sr.ind.br", "wesley@sr.ind.br"]#, "producao@sr.ind.br", "qualidade@sr.ind.br", "expedicao@sr.ind.br"]
+        recipients = ["ldeavila@sr.ind.br", "wesley@sr.ind.br"]#, "producao@sr.ind.br", "ricardo@sr.ind.br", "qualidade@sr.ind.br", "expedicao@sr.ind.br"]
         msg['To'] = ", ".join(recipients)
         msg['Subject'] = "Aproveitamento Estoque"
         msg.attach(MIMEText(message, 'plain'))
@@ -41,14 +41,14 @@ class DisparaEmail:
         df = self.df
         nlis = f"{self.sauda()}.\nPara carregamento {str(self.car)} temos os itens:\n"
         for _, vals in df.iterrows():
-            nlis += (f"\t - {vals['COD_ITEM']}[{vals['MASC_ID']}] {vals['QTDE']} "
+            nlis += (f"\t - {vals['COD_ITEM']}[{str(vals['MASC_ID']).rjust(6)}] {vals['QTDE']} "
                      f"{'unidades' if vals['QTDE'] > 1 else 'unidade'} "
                      f"porem há saldo do mesmo item com a mascara {str(vals['MASC']).rjust(6)}-"
-                     f"{str(vals['DESC_MASC']).ljust(42)} quantidade {vals['SALDO_EST']}"
+                     f"{vals['DESC_MASC']} quantidade {vals['SALDO_EST']}"
                      f" no almox 6.\n"
                      )
-
-        print(nlis)
+        nlis += '\nAmanda pode por favor verificar se realmente existem estes itens físicamente? e se estão disponíveis' \
+                ' para aproveitarmos?\n \nAt.te;'
         return nlis
 
 
