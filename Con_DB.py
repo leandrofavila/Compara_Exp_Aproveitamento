@@ -43,49 +43,25 @@ class DB:
         return car_exps
 
 
-    def dim_itens(self, cod_item, dimensao, variacao):
-        #print(cod_item, dimensao, variacao)
-        if variacao is None:
-            variacao = 0
-
-        if dimensao is None:
-            com_dim = ''
-        else:
-            com_dim = (
-                r"WHERE (TABELA.MED_X BETWEEN "
-                r""+str(dimensao)+" - "+str(variacao)+" AND "+str(dimensao)+" + "+str(variacao)+") "
-                r"OR (TABELA.MED_Y BETWEEN "
-                r""+str(dimensao)+" - "+str(variacao)+" AND "+str(dimensao)+" + "+str(variacao)+") "
-                r"OR (TABELA.MED_Z BETWEEN "+str(dimensao)+" - "+str(variacao)+" AND "+str(dimensao)+" + "+str(variacao)+") "
-            )
-        print(com_dim)
+    def rodado(self, car):
         cur = self.get_connection()
         cur.execute(
-            r"SELECT *  FROM ( "
-            r"SELECT ENG.COD_ITEM, TIT.DESC_TECNICA, "
-            r"         (SELECT TO_NUMBER(REPLACE(PDM.CONTEUDO_ATRIBUTO,',', '.')) "
-            r"            FROM FOCCO3I.TITENS_PDM PDM "
-            r"            INNER JOIN FOCCO3I.TATRIBUTOS ATR ON ATR.ID = PDM.ATRIBUTO_ID "
-            r"            WHERE ATR.DESCRICAO LIKE '%MEDIDA_X%' AND PDM.ITEM_ID = EMPF.ITEM_ID) AS MED_X, "
-            r"         (SELECT TO_NUMBER(REPLACE(PDM.CONTEUDO_ATRIBUTO,',', '.')) "
-            r"            FROM FOCCO3I.TITENS_PDM PDM "
-            r"            INNER JOIN FOCCO3I.TATRIBUTOS ATR ON ATR.ID = PDM.ATRIBUTO_ID "
-            r"            WHERE ATR.DESCRICAO LIKE '%MEDIDA_Y%' AND PDM.ITEM_ID = EMPF.ITEM_ID) AS MED_Y, "
-            r"         (SELECT TO_NUMBER(REPLACE(PDM.CONTEUDO_ATRIBUTO,',', '.')) "
-            r"            FROM FOCCO3I.TITENS_PDM PDM "
-            r"            INNER JOIN FOCCO3I.TATRIBUTOS ATR ON ATR.ID = PDM.ATRIBUTO_ID "
-            r"            WHERE ATR.DESCRICAO LIKE '%MEDIDA_Z%' AND PDM.ITEM_ID = EMPF.ITEM_ID) AS MED_Z "
-            r"FROM FOCCO3I.TITENS_EMPR EMP "
-            r"INNER JOIN FOCCO3I.TITENS_ENGENHARIA ENG ON ENG.ITEMPR_ID_ITEM_BASE = EMP.ID "
-            r"INNER JOIN FOCCO3I.TITENS_EMPR EMPF ON EMPF.ID = ENG.ITEMPR_ID "
-            r"INNER JOIN FOCCO3I.TITENS TIT ON TIT.ID = EMPF.ITEM_ID "
-            r"WHERE EMP.COD_ITEM = "+str(cod_item)+") TABELA "
-            r""+com_dim+" "
+            r"SELECT TOR.ID "
+            r"FROM FOCCO3I.TORDENS TOR "
+            r"INNER JOIN FOCCO3I.TORDENS_VINC_ITPDV VINC          ON VINC.ORDEM_ID = TOR.ID "
+            r"INNER JOIN FOCCO3I.TITENS_PDV ITPDV                 ON ITPDV.ID = VINC.ITPDV_ID "
+            r"INNER JOIN FOCCO3I.TPEDIDOS_VENDA PDV               ON PDV.ID = ITPDV.PDV_ID "
+            r"INNER JOIN FOCCO3I.TORDENS_ROT ROT                  ON ROT.ORDEM_ID = TOR.ID "
+            r"INNER JOIN FOCCO3I.TOPERACAO OP                     ON OP.ID = ROT.OPERACAO_ID "
+            r"LEFT JOIN FOCCO3I.TORDENS_MOVTO MOV                 ON MOV.TORDEN_ROT_ID = ROT.ID "
+            r"LEFT JOIN FOCCO3I.TSRENG_ORDENS_VINC_CAR VINC       ON TOR.ID = VINC.ORDEM_ID "
+            r"LEFT JOIN FOCCO3I.TSRENGENHARIA_CARREGAMENTOS CAR   ON VINC.CARERGAM_ID = CAR.ID "
+            r"WHERE CAR.carregamento = "+str(car)+" "
         )
+        linhas = cur.fetchall()
+        return len(linhas) > 0
 
-        dim_itens = pd.DataFrame(cur.fetchall(), columns=["COD_ITEM", "DESC_TECNICA", "MED_X", "MED_Y", "MED_Z"])
-        cur.close()
-        return dim_itens
+
 
     def disponibilidade_estoque(self, cod_item):
         cur = self.get_connection()
