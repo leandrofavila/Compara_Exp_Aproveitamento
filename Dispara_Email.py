@@ -25,7 +25,7 @@ class DisparaEmail:
         message = self.trata_email()
         password = "srengld21v3l1"
         msg['From'] = "ldeavila@sr.ind.br"
-        recipients = ["ldeavila@sr.ind.br", "wesley@sr.ind.br"]#, "producao@sr.ind.br", "ricardo@sr.ind.br", "qualidade@sr.ind.br", "expedicao@sr.ind.br"]
+        recipients = ["ldeavila@sr.ind.br", "qualidade@sr.ind.br"]#, "wesley@sr.ind.br", "producao@sr.ind.br", "ricardo@sr.ind.br", "qualidade@sr.ind.br", "expedicao@sr.ind.br"]
         msg['To'] = ", ".join(recipients)
         msg['Subject'] = "Aproveitamento Estoque"
         msg.attach(MIMEText(message, 'plain'))

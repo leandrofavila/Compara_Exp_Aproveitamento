@@ -22,6 +22,8 @@ for car in carregamentos:
         if not df.empty:
             temp_df_combined = pd.concat(temp_df_list, ignore_index=True)
             result_df = pd.merge(df, temp_df_combined, on='COD_ITEM', how='inner')
+            result_df = result_df[result_df["SALDO_EST"] > 0]
+            print(result_df.to_string())
             disp = DisparaEmail(result_df, car)
             disp.dispara_email()
 
