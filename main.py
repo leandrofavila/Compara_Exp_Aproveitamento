@@ -5,7 +5,7 @@ import pandas as pd
 db = DB()
 carregamentos = db.carregamentos()
 
-old_car = pd.read_csv('lista_carregamentos.csv')
+old_car = pd.read_csv(r'C:\Users\pcp03\PycharmProjects\Compara_Exp_Aproveitamento\lista_carregamentos.csv')
 
 print('***APROVEITAMENTO ESTOQUE***')
 
@@ -23,11 +23,13 @@ for car in carregamentos:
             temp_df_combined = pd.concat(temp_df_list, ignore_index=True)
             result_df = pd.merge(df, temp_df_combined, on='COD_ITEM', how='inner')
             result_df = result_df[result_df["SALDO_EST"] > 0]
+            #para remover valores do que será enviado
+            #result_df = result_df[result_df['COD_ITEM'].isin(['16333', '24026', '56411'])]
             print(result_df.to_string())
             disp = DisparaEmail(result_df, car)
             disp.dispara_email()
 
     if db.rodado(car):
-        with open('lista_carregamentos.csv', 'a') as car_lis:
+        with open(r'C:\Users\pcp03\PycharmProjects\Compara_Exp_Aproveitamento\lista_carregamentos.csv', 'a') as car_lis:
             car_lis.write('\n')
             car_lis.write(str(car))
