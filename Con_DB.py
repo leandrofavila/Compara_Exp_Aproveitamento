@@ -112,9 +112,9 @@ class DB:
             r"AND ENG.TP_ITEM = 'F' "
             r"GROUP BY TIT_FIL.COD_ITEM, TES.TMASC_ITEM_ID_FILHO, TIT_FIL.DESC_TECNICA "
         )
-        rel_estrutura = pd.DataFrame(cur.fetchall(), columns=["COD_ITEM", "MASC_FILHO", "DESC_FILHO",
-                                                              "QTDE_FILHO"])
-        rel_estrutura['MASC_FILHO'] = rel_estrutura['MASC_FILHO'].astype('Int64')
+        rel_estrutura = pd.DataFrame(cur.fetchall(), columns=["COD_ITEM", "MASC", "DESC_TECNICA",
+                                                              "QTDE"])
+        rel_estrutura['MASC'] = rel_estrutura['MASC'].astype('Int64')
         return rel_estrutura
 
 
@@ -184,7 +184,6 @@ class DB:
                 return semelhantes
         else:
             return semelhantes
-
         cur.close()
 
 

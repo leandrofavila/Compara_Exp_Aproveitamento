@@ -29,16 +29,16 @@ for idx, row in df_demanda_pedido.iterrows():
     else:
         linha = {
             'COD_ITEM': row['COD_ITEM'],
-            'MASC_FILHO': row['MASC_FILHO'],
-            'DESC_FILHO': row['DESC_FILHO'],
-            'QTDE_FILHO': row['QTDE_FILHO']
+            'MASC': row['MASC'],
+            'DESC_TECNICA': row['DESC_TECNICA'],
+            'QTDE': row['QTDE']
                  }
         df_sem_saldo.append(linha)
 
 df_sem_saldo = pd.DataFrame(df_sem_saldo)
 df_demanda_pedido = df_demanda_pedido[df_demanda_pedido['SLD_POSITIVO'].notna()].reset_index(drop=True)
-print('DATAFRAME DO QUE HÁ SALDO POSITIVO PARA APROVEITAMENTO')
-print(df_demanda_pedido.to_string())
+print('DATAFRAME DO QUE HÁ SALDO POSITIVO PARA APROVEITAMENTO E O CODIGO DO ITEM É IGUAL')
+print(df_demanda_pedido.to_string() if not df_demanda_pedido.empty else 'Não há saldo para os itens do carregamento')
 
 '''
 Agora para cada item do df_sem_saldo procura-se seus semelhantes e verifica mais uma vez se há saldo positivo 
@@ -55,7 +55,7 @@ dic_semelhantes = {}
 Procura por semelhantes e adiciona como uma lista na coluna SEMELHANTES
 '''
 for idx, row in df_sem_saldo.iterrows():
-    grp_modifi = row['DESC_FILHO'].split()
+    grp_modifi = row['DESC_TECNICA'].split()
     grp_modifi = f'{grp_modifi[0]} {grp_modifi[1]}'
     #print(row['X'], row['Y'], row['Z'], 10, grp_modifi)
     semel_searched = db.semelhantes(row['X'], row['Y'], row['Z'], 1, grp_modifi)
