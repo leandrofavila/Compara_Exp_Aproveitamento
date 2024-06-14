@@ -28,7 +28,7 @@ for car in carregamentos:
             #para remover valores do que será enviado
             #result_df = result_df[result_df['COD_ITEM'].isin(['104460'])]
             print(result_df.to_string())
-            disp = DisparaEmail(result_df, car)
+            disp = DisparaEmail(result_df)
             disp.dispara_email()
 
     if db.rodado(car):

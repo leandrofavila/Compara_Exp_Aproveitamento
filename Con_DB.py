@@ -97,7 +97,7 @@ class DB:
     def W_F3IGI_TESTE(self):
         cur = self.get_connection()
         cur.execute(
-            r"SELECT TIT_FIL.COD_ITEM,  "
+            r"SELECT TIT_FIL.COD_ITEM AS COD_ITEM_FILHO,  "
             r"TES.TMASC_ITEM_ID_FILHO,  "
             r"TIT_FIL.DESC_TECNICA AS DESC_FILHO,  "
             r"SUM(TES.QTDE_FILHO) "
@@ -106,9 +106,9 @@ class DB:
             r"INNER JOIN FOCCO3I.TITENS TIT_PAI           ON TIT_PAI.ID = EMP_PAI.ITEM_ID "
             r"INNER JOIN FOCCO3I.TITENS_EMPR EMP_FIL      ON EMP_FIL.ID = TES.ITEMPR_ID_FILHO "
             r"INNER JOIN FOCCO3I.TITENS TIT_FIL           ON TIT_FIL.ID = EMP_FIL.ITEM_ID "
-            r"INNER JOIN FOCCO3I.TITENS_PLANEJAMENTO TPL  ON TPL.ITEMPR_ID = EMP_PAI.ID "
+            r"INNER JOIN FOCCO3I.TITENS_PLANEJAMENTO TPL  ON TPL.ITEMPR_ID = EMP_FIL.ID "
             r"INNER JOIN FOCCO3I.TITENS_ENGENHARIA ENG    ON ENG.ITEMPR_ID = EMP_FIL.ID "
-            r"WHERE TPL.FANTASMA = 0 "
+            r"WHERE TPL.FANTASMA = 0     "
             r"AND ENG.TP_ITEM = 'F' "
             r"GROUP BY TIT_FIL.COD_ITEM, TES.TMASC_ITEM_ID_FILHO, TIT_FIL.DESC_TECNICA "
         )

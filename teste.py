@@ -1,75 +1,107 @@
-import cx_Oracle
-import pandas as pd
+import re
+import matplotlib.pyplot as plt
 
+gcode = """
+N830G01X229.701Y11.500C1=DC(0.)
+N840NIBBLE_ON
+N850SPP=12.254
+N860G01X254.208Y11.500
+N870NIBBLE_OFF
+N880G01X229.701Y23.754
+N890NIBBLE_ON
+N900SPP=12.254
+N910G01X254.208Y23.754
+N920NIBBLE_OFF
+N930G01X229.701Y36.007
+N940NIBBLE_ON
+N950SPP=12.254
+N960G01X254.208Y36.007
+N970NIBBLE_OFF
+N980G01X229.701Y590.500
+N990NIBBLE_ON
+N1000SPP=17.877
+N1010G01X229.701Y518.993
+N1020NIBBLE_OFF
+N1030G01X241.954Y590.500
+N1040NIBBLE_ON
+N1050SPP=17.877
+N1060G01X241.954Y518.993
+N1070NIBBLE_OFF
+N1080G01X254.208Y590.500
+N1090NIBBLE_ON
+N1100SPP=17.877
+N1110G01X254.208Y518.993
+N1120NIBBLE_OFF
+N1130G01X2203.126Y590.500
+N1140NIBBLE_ON
+N1150SPP=12.254
+N1160G01X2178.619Y590.500
+N1170NIBBLE_OFF
+N1180G01X2203.126Y572.623
+N1190NIBBLE_ON
+N1200SPP=12.254
+N1210G01X2178.619Y572.623
+N1220NIBBLE_OFF
+N1230G01X2203.126Y554.746
+N1240NIBBLE_ON
+N1250SPP=12.254
+N1260G01X2178.619Y554.746
+N1270NIBBLE_OFF
+N1280G01X2203.126Y536.870
+N1290NIBBLE_ON
+N1300SPP=12.254
+N1310G01X2178.619Y536.870
+N1320NIBBLE_OFF
+N1330G01X2203.126Y518.993
+N1340NIBBLE_ON
+N1350SPP=12.254
+N1360G01X2178.619Y518.993
+N1370NIBBLE_OFF
+N1380G01X2203.126Y11.500
+N1390NIBBLE_ON
+N1400SPP=12.254
+N1410G01X2178.619Y11.500
+N1420NIBBLE_OFF
+N1430G01X2203.126Y23.754
+N1440NIBBLE_ON
+N1450SPP=12.254
+N1460G01X2178.619Y23.754
+N1470NIBBLE_OFF
+N1480G01X2203.126Y36.007
+N1490NIBBLE_ON
+N1500SPP=12.254
+N1510G01X2178.619Y36.007
+"""
 
+# Regex pattern to match G01 commands and extract X and Y coordinates
+pattern = re.compile(r'G01X([\d.]+)Y([\d.]+)')
 
-def get_connection():
-    dsn = cx_Oracle.makedsn("10.40.3.10", 1521, service_name="f3ipro")
-    connection = cx_Oracle.connect(user=r"focco_consulta", password=r'consulta3i08', dsn=dsn, encoding="UTF-8")
-    cur = connection.cursor()
-    return cur
+# List to store the vectors
+vectors = []
 
+# Find all matches in the gcode
+matches = pattern.findall(gcode)
 
-def disponibilidade_estoque():
-    cur = get_connection()
-    query = """
-        SELECT *  
-        FROM (
-            SELECT 
-                ENG.COD_ITEM,
-                (SELECT CASE 
-                            WHEN REGEXP_LIKE(PDM.CONTEUDO_ATRIBUTO, '^-?[0-9]+(\,[0-9]+)?$') THEN TO_NUMBER(REPLACE(PDM.CONTEUDO_ATRIBUTO, ',', '.')) 
-                            ELSE 0 
-                        END AS MED_X
-                 FROM FOCCO3I.TITENS_PDM PDM
-                 INNER JOIN FOCCO3I.TATRIBUTOS ATR ON ATR.ID = PDM.ATRIBUTO_ID
-                 WHERE ATR.DESCRICAO LIKE '%MEDIDA_X%' 
-                 AND PDM.ITEM_ID = EMPF.ITEM_ID
-                 FETCH FIRST ROW ONLY
-                ) AS MED_X,
-                (SELECT CASE 
-                            WHEN REGEXP_LIKE(PDM.CONTEUDO_ATRIBUTO, '^-?[0-9]+(\,[0-9]+)?$') THEN TO_NUMBER(REPLACE(PDM.CONTEUDO_ATRIBUTO, ',', '.')) 
-                            ELSE 0 
-                        END AS MED_Y
-                 FROM FOCCO3I.TITENS_PDM PDM
-                 INNER JOIN FOCCO3I.TATRIBUTOS ATR ON ATR.ID = PDM.ATRIBUTO_ID
-                 WHERE ATR.DESCRICAO LIKE '%MEDIDA_Y%' 
-                 AND PDM.ITEM_ID = EMPF.ITEM_ID
-                 FETCH FIRST ROW ONLY
-                ) AS MED_Y,
-                (SELECT CASE 
-                            WHEN REGEXP_LIKE(PDM.CONTEUDO_ATRIBUTO, '^-?[0-9]+(\,[0-9]+)?$') THEN TO_NUMBER(REPLACE(PDM.CONTEUDO_ATRIBUTO, ',', '.')) 
-                            ELSE 0 
-                        END AS MED_Z
-                 FROM FOCCO3I.TITENS_PDM PDM
-                 INNER JOIN FOCCO3I.TATRIBUTOS ATR ON ATR.ID = PDM.ATRIBUTO_ID
-                 WHERE ATR.DESCRICAO LIKE '%MEDIDA_Z%' 
-                 AND PDM.ITEM_ID = EMPF.ITEM_ID
-                 FETCH FIRST ROW ONLY
-                ) AS MED_Z
-            FROM FOCCO3I.TITENS_EMPR EMP
-            INNER JOIN FOCCO3I.TITENS_ENGENHARIA ENG ON ENG.ITEMPR_ID_ITEM_BASE = EMP.ID
-            INNER JOIN FOCCO3I.TITENS_EMPR EMPF ON EMPF.ID = ENG.ITEMPR_ID
-            INNER JOIN FOCCO3I.TITENS TIT ON TIT.ID = EMPF.ITEM_ID
-            WHERE TIT.SIT = 1
-            AND TIT.DESC_TECNICA LIKE '%PAINEL LATERAL%'
-        )
-        WHERE SQRT(
-            LEAST(
-                POWER(NVL(MED_X, 0) - 75, 2) + POWER(NVL(MED_Y, 0) - 486, 2) + POWER(NVL(MED_Z, 0) - 1955, 2),
-                POWER(NVL(MED_X, 0) - 75, 2) + POWER(NVL(MED_Y, 0) - 1955, 2) + POWER(NVL(MED_Z, 0) - 486, 2),
-                POWER(NVL(MED_X, 0) - 486, 2) + POWER(NVL(MED_Y, 0) - 75, 2) + POWER(NVL(MED_Z, 0) - 1955, 2),
-                POWER(NVL(MED_X, 0) - 486, 2) + POWER(NVL(MED_Y, 0) - 1955, 2) + POWER(NVL(MED_Z, 0) - 75, 2),
-                POWER(NVL(MED_X, 0) - 1955, 2) + POWER(NVL(MED_Y, 0) - 75, 2) + POWER(NVL(MED_Z, 0) - 486, 2),
-                POWER(NVL(MED_X, 0) - 1955, 2) + POWER(NVL(MED_Y, 0) - 486, 2) + POWER(NVL(MED_Z, 0) - 75, 2)
-            )
-        ) < 20
-    """
-    cur.execute(query)
-    disp_estq = pd.DataFrame(cur.fetchall())
-    cur.close()
-    return disp_estq
+# Convert matches to vectors and store them
+for match in matches:
+    x, y = map(float, match)
+    vectors.append((x, y))
 
-print(disponibilidade_estoque())
+# Extract X and Y coordinates for plotting
+x_coords = [v[0] for v in vectors]
+y_coords = [v[1] for v in vectors]
 
+# Plot the vectors
+plt.figure(figsize=(10, 6))
+plt.plot(x_coords, y_coords, marker='o')
 
+# Adding titles and labels
+plt.title('G-code Path Visualization')
+plt.xlabel('X Coordinate')
+plt.ylabel('Y Coordinate')
+
+# Adding grid for better visualization
+plt.grid(True)
+
+# Display the plot
+plt.show()
