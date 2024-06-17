@@ -4,11 +4,13 @@ from email.mime.text import MIMEText
 import smtplib
 from email.mime.application import MIMEApplication
 import os
+from colorama import Fore, Style
 
 
 class DisparaEmail:
     def __init__(self, df):
         self.df = df
+        self.pedido = input(Fore.RED + Style.BRIGHT + 'Pedido? ')
 
 
     def dispara_email(self):
@@ -32,7 +34,7 @@ class DisparaEmail:
         msg['From'] = "ldeavila@sr.ind.br"
         recipients = ["ldeavila@sr.ind.br"]#, "wesley@sr.ind.br"]#, "qualidade@sr.ind.br", "producao@sr.ind.br", "ricardo@sr.ind.br", "qualidade@sr.ind.br", "expedicao@sr.ind.br"]
         msg['To'] = ", ".join(recipients)
-        msg['Subject'] = f"Aproveitamento Estoque Ped."
+        msg['Subject'] = f"Aproveitamento Estoque Ped. {str(self.pedido)}"
         msg.attach(MIMEText(message, 'plain'))
         server = smtplib.SMTP('10.40.3.12: 465')
         server.starttls()
@@ -44,7 +46,8 @@ class DisparaEmail:
 
     def trata_email(self):
         df = self.df
-        nlis = f"{self.sauda()}.\nPara pedido {'pedido tal'} temos os itens:\n"
+        nlis = f"{self.sauda()}.\nPara o próximo carregamento do pedido " \
+               f"{str(self.pedido)} temos como demanda os itens:\n"
         for _, vals in df.iterrows():
             if vals['SLD_SEMEL'] is False:
                 nlis += (
@@ -61,11 +64,11 @@ class DisparaEmail:
                 lis_seml = vals['SLD_SEMEL']
                 seml = list(lis_seml)
                 nlis += (
-                    f"\t - {str(vals['COD_ITEM']).ljust(6)}"
+                    f"\t -{str(vals['COD_ITEM']).ljust(6)}"
                     f"[{str(vals['MASC']).ljust(6)}] "
                     f"{str(vals['QTDE']).ljust(3)} "
                     f"{('unidades' if vals['QTDE'] > 1 else 'unidade').ljust(8)} "
-                    f"porem há saldo do item {str(seml[0]).rjust(6)}[{str(seml[1]).rjust(6)}] {str(seml[2]).rjust(6)} -"
+                    f"porem há saldo do item -{str(seml[0]).rjust(6)}[{str(seml[1]).rjust(6)}] {str(seml[2]).rjust(6)} -"
                     f"{str(seml[3]).rjust(3)} und.\n"
                     )
             

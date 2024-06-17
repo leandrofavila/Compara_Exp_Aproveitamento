@@ -4,6 +4,7 @@ from time import time
 import os
 import pyautogui
 from Dispara_Email import DisparaEmail
+from colorama import Fore, Style
 
 
 def medir_tempo():
@@ -78,8 +79,9 @@ for idx, row in df_demanda_pedido.iterrows():
 df_sem_saldo = pd.DataFrame(df_sem_saldo)
 df_demanda_pedido = df_demanda_pedido[df_demanda_pedido['SLD_POSITIVO'].notna()].reset_index(drop=True)
 df_demanda_pedido = filtra_df(df_demanda_pedido)
-#print('\n--DATAFRAME DO QUE HÁ SALDO POSITIVO PARA APROVEITAMENTO E O CODIGO DO ITEM É IGUAL')
-#print(df_demanda_pedido.to_string() if not df_demanda_pedido.empty else 'Não há saldo para os itens do carregamento')
+df_demanda_pedido = df_demanda_pedido[df_demanda_pedido['MASC'] != df_demanda_pedido['MASC_SLD']]
+print('\n--DATAFRAME DO QUE HÁ SALDO POSITIVO PARA APROVEITAMENTO E O CODIGO DO ITEM É IGUAL')
+print(df_demanda_pedido.to_string() if not df_demanda_pedido.empty else 'Não há saldo para os itens do carregamento')
 medir_tempo_execucao('separar saldo direto')
 '''
 Agora para cada item do df_sem_saldo procura-se seus semelhantes e verifica mais uma vez se há saldo positivo
@@ -155,3 +157,5 @@ medir_tempo_execucao('verificar saldo semelhantes')
 if not df.empty:
     disp = DisparaEmail(df)
     disp.dispara_email()
+else:
+    print(Fore.RED + Style.BRIGHT + 'Não há nada pra ver aqui, pode continuar o baile.')
